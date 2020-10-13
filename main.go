@@ -1,20 +1,22 @@
 package main
 
 import (
-  "net/http"
+	"net/http"
 
-  log "github.com/Sirupsen/logrus"
-  "github.com/prometheus/client_golang/prometheus"
-  "github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 )
 
 // LVM collector, listen to port 9080 path /metrics
 func main() {
+	lvmVgCollector := newLvmVgCollector()
+	prometheus.MustRegister(lvmVgCollector)
 
-  lvmCollector := newLvmCollector()
-  prometheus.MustRegister(lvmCollector)
+	lvmLvCollector := newLvmLvCollector()
+	prometheus.MustRegister(lvmLvCollector)
 
-  http.Handle("/metrics", promhttp.Handler())
-  log.Info("Beginning to serve on port :9080")
-  log.Fatal(http.ListenAndServe(":9080", nil))
+	http.Handle("/metrics", promhttp.Handler())
+	log.Info("Beginning to serve on port :9080")
+	log.Fatal(http.ListenAndServe(":9080", nil))
 }
