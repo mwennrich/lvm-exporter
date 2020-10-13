@@ -1,11 +1,8 @@
-FROM golang:1.8
+FROM debian:9.9-slim
 
-RUN apt-get update || exit 0
-RUN apt-get install -y lvm2
-WORKDIR /go/src/app
-COPY . .
+EXPOSE 9080
 
-RUN go get -d -v ./...
-RUN go install -v ./...
+COPY dist/lvm-exporter_linux_amd64 /app/lvm-exporter
+RUN chmod 755 /app/*
 
-CMD ["app"]
+CMD [ "/app/lvm-exporter" ]
