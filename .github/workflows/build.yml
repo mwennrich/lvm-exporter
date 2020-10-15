@@ -28,6 +28,6 @@ jobs:
           go get github.com/tcnksm/ghr
           LDFLAGS="-X main.appVersion=${{ steps.version.outputs.VERSION }} -X main.shortSha=$GITHUB_SHA"
           CGO_ENABLED=0 gox -os="linux freebsd netbsd" -arch="amd64 arm arm64 386" -parallel=4 -ldflags "$LDFLAGS" -output "dist/${APP_NAME}_{{.OS}}_{{.Arch}}"
-          ghr -t ${{ secrets.GITHUB_TOKEN }} -replace ${{ steps.version.outputs.VERSION }} dist/
+          ghr -t ${{ secrets.GITHUB_TOKEN }} -replace ${GITHUB_REF#refs/tags/v} dist/
           docker build -t $DOCKER_IMAGE_NAME:${{ steps.version.outputs.VERSION }} .
           docker push $DOCKER_IMAGE_NAME:${{ steps.version.outputs.VERSION }}
