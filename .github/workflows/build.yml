@@ -20,7 +20,7 @@ jobs:
         id: version
         run: |
           echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
-          echo ::set-output name=FULL_TAG::${GITHUB_REF#refs/tags/v}
+          echo ::set-output name=TAG::${GITHUB_REF#refs/tags/}
       - name: Login to registry
         run: docker login --username panzelva --password $DOCKER_HUB_ACCESS_TOKEN
       - name: Build
@@ -30,6 +30,6 @@ jobs:
           go get github.com/tcnksm/ghr
           LDFLAGS="-X main.appVersion=${{ steps.version.outputs.VERSION }} -X main.shortSha=$GITHUB_SHA"
           CGO_ENABLED=0 gox -os="linux freebsd netbsd" -arch="amd64 arm arm64 386" -parallel=4 -ldflags "$LDFLAGS" -output "dist/${APP_NAME}_{{.OS}}_{{.Arch}}"
-          ghr -t ${{ secrets.GITHUB_TOKEN }} -replace ${{ steps.version.outputs.FULL_TAG }} dist/
+          ghr -t ${{ secrets.GITHUB_TOKEN }} -replace ${{ steps.version.outputs.TAG }} dist/
           docker build -t $DOCKER_IMAGE_NAME:${{ steps.version.outputs.VERSION }} .
           docker push $DOCKER_IMAGE_NAME:${{ steps.version.outputs.VERSION }}
