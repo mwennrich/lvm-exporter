@@ -1,11 +1,14 @@
-FROM debian:buster-slim
+
+FROM golang:1.16-alpine as builder
+RUN apk add make binutils
+COPY / /work
+WORKDIR /work
+RUN make lvm-exporter
+
+FROM alpine:3.13
+RUN apk add lvm2
+COPY --from=builder /work/bin/lvm-exporter /lvm-exporter
+USER root
+ENTRYPOINT ["/lvm-exporter"]
 
 EXPOSE 9080
-
-RUN apt-get update && \
-    apt-get install lvm2 -y
-
-COPY dist/lvm-exporter_linux_amd64 /app/lvm-exporter
-RUN chmod 755 /app/*
-
-CMD [ "/app/lvm-exporter" ]
