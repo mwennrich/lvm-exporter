@@ -14,26 +14,28 @@ type lvmLvCollector struct {
 	lvMetadataSizeMetric   *prometheus.Desc
 	lvDataFilledMetric     *prometheus.Desc
 	lvMetadataFilledMetric *prometheus.Desc
+	node                   string
 }
 
-func newLvmLvCollector() *lvmLvCollector {
+func newLvmLvCollector(node string) *lvmLvCollector {
 	return &lvmLvCollector{
 		lvDataSizeMetric: prometheus.NewDesc("lvm_lv_size_bytes",
 			"Shows LVM LV data size in Bytes",
-			[]string{"lv_pool_name", "lv_name", "vg_name"}, nil,
+			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
 		),
 		lvMetadataSizeMetric: prometheus.NewDesc("lvm_lv_metadata_size_bytes",
 			"Shows LVM LV metadata size in Bytes",
-			[]string{"lv_pool_name", "lv_name", "vg_name"}, nil,
+			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
 		),
 		lvDataFilledMetric: prometheus.NewDesc("lvm_lv_filled_percentage",
 			"Shows LVM LV data filled percentage",
-			[]string{"lv_pool_name", "lv_name", "vg_name"}, nil,
+			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
 		),
 		lvMetadataFilledMetric: prometheus.NewDesc("lvm_lv_metadata_filled_percentage",
 			"Shows LVM LV metadata filled percentage",
-			[]string{"lv_pool_name", "lv_name", "vg_name"}, nil,
+			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
 		),
+		node: node,
 	}
 }
 
@@ -69,7 +71,7 @@ func (collector *lvmLvCollector) Collect(ch chan<- prometheus.Metric) {
 				continue
 			}
 
-			ch <- prometheus.MustNewConstMetric(descriptor, prometheus.GaugeValue, value, poolName, logicalVolumeName, volumeGroupName)
+			ch <- prometheus.MustNewConstMetric(descriptor, prometheus.GaugeValue, value, poolName, logicalVolumeName, volumeGroupName, collector.node)
 		}
 	}
 }

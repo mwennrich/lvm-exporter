@@ -68,7 +68,6 @@ spec:
       containers:
       - name: lvm-exporter
         image: mwennrich/lvm-exporter:latest
-        imagePullPolicy: IfNotPresent
         securityContext:
           privileged: true
         command:
@@ -77,6 +76,12 @@ spec:
         - name: metrics
           containerPort: 9080
           protocol: TCP
+        env:
+        - name: KUBE_NODE_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: spec.nodeName
         volumeMounts:
           - mountPath: /dev
             name: devices
