@@ -10,68 +10,43 @@ import (
 )
 
 type lvmLvCollector struct {
-	lvDataSizeMetric       *prometheus.Desc
-	lvMetadataSizeMetric   *prometheus.Desc
-	lvDataFilledMetric     *prometheus.Desc
-	lvMetadataFilledMetric *prometheus.Desc
-	node                   string
+	lvTotalSizeMetric *prometheus.Desc
+	node              string
 }
 
 func newLvmLvCollector(node string) *lvmLvCollector {
 	return &lvmLvCollector{
-		lvDataSizeMetric: prometheus.NewDesc("lvm_lv_size_bytes",
-			"Shows LVM LV data size in Bytes",
-			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
-		),
-		lvMetadataSizeMetric: prometheus.NewDesc("lvm_lv_metadata_size_bytes",
-			"Shows LVM LV metadata size in Bytes",
-			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
-		),
-		lvDataFilledMetric: prometheus.NewDesc("lvm_lv_filled_percentage",
-			"Shows LVM LV data filled percentage",
-			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
-		),
-		lvMetadataFilledMetric: prometheus.NewDesc("lvm_lv_metadata_filled_percentage",
-			"Shows LVM LV metadata filled percentage",
-			[]string{"lv_pool_name", "lv_name", "vg_name", "node"}, nil,
+		lvTotalSizeMetric: prometheus.NewDesc("lvm_lv_total_size_bytes",
+			"Shows LVM LV total size in Bytes",
+			[]string{"lv_name", "vg_name", "node"}, nil,
 		),
 		node: node,
 	}
 }
 
 func (collector *lvmLvCollector) Describe(ch chan<- *prometheus.Desc) {
-	ch <- collector.lvDataSizeMetric
-	ch <- collector.lvMetadataSizeMetric
-	ch <- collector.lvDataFilledMetric
-	ch <- collector.lvMetadataFilledMetric
+	ch <- collector.lvTotalSizeMetric
 }
 
 func (collector *lvmLvCollector) Collect(ch chan<- prometheus.Metric) {
-	// /sbin/lvs --units B --separator , -o lv_size,lv_metadata_size,data_percent,metadata_percent,pool_lv,lv_name,vg_name --noheadings
-	out, err := exec.Command("/sbin/lvs", "--units", "B", "--separator", ",", "-o", "lv_size,lv_metadata_size,data_percent,metadata_percent,pool_lv,lv_name,vg_name", "--noheadings").Output()
+	out, err := exec.Command("/sbin/lvs", "--units", "B", "--separator", ",", "-o", "lv_size,lv_name,vg_name", "--noheadings").Output()
 	if err != nil {
 		log.Print(err)
 	}
-
 	lines := strings.Split(string(out), "\n")
 	for _, line := range lines {
-		values := strings.Split(line, ",")
-		if len(values) < 6 {
+		values := strings.Split(strings.TrimSpace(line), ",")
+		if len(values) < 3 {
 			continue
 		}
 
-		descriptors := []*prometheus.Desc{collector.lvDataSizeMetric, collector.lvMetadataSizeMetric, collector.lvDataFilledMetric, collector.lvMetadataFilledMetric}
-		poolName := values[4]
-		logicalVolumeName := values[5]
-		volumeGroupName := values[6]
-
-		for index, descriptor := range descriptors {
-			value, err := strconv.ParseFloat(strings.Trim(values[index], "B"), 64)
-			if err != nil {
-				continue
-			}
-
-			ch <- prometheus.MustNewConstMetric(descriptor, prometheus.GaugeValue, value, poolName, logicalVolumeName, volumeGroupName, collector.node)
+		logicalVolumeName := values[1]
+		volumeGroupName := values[2]
+		size, err := strconv.ParseFloat(strings.Trim(values[0], "B"), 64)
+		if err != nil {
+			continue
 		}
+
+		ch <- prometheus.MustNewConstMetric(collector.lvTotalSizeMetric, prometheus.GaugeValue, size, logicalVolumeName, volumeGroupName, collector.node)
 	}
 }
