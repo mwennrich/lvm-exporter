@@ -10,7 +10,9 @@ metadata:
 spec:
   allowedHostPaths:
   - pathPrefix: /lib/modules
+    readOnly: true
   - pathPrefix: /dev
+    readOnly: true
   fsGroup:
     rule: RunAsAny
   privileged: true
