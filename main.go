@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -27,5 +28,9 @@ func main() {
 
 	http.Handle("/metrics", promhttp.Handler())
 	klog.Info("Beginning to serve on port :9080")
-	klog.Fatal(http.ListenAndServe(":9080", nil))
+	server := &http.Server{
+		Addr:              ":9080",
+		ReadHeaderTimeout: 5 * time.Second,
+	}
+	klog.Fatal(server.ListenAndServe())
 }
