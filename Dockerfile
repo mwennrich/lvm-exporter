@@ -5,7 +5,7 @@ COPY / /work
 WORKDIR /work
 RUN make lvm-exporter
 
-FROM alpine:3.16
+FROM alpine:3.17
 RUN apk add lvm2
 COPY --from=builder /work/bin/lvm-exporter /lvm-exporter
 USER root
