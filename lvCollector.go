@@ -33,8 +33,8 @@ func (collector *lvmLvCollector) Collect(ch chan<- prometheus.Metric) {
 	if err != nil {
 		log.Print(err)
 	}
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(string(out), "\n")
+	for line := range lines {
 		values := strings.Split(strings.TrimSpace(line), ",")
 		if len(values) < 3 {
 			continue
