@@ -42,8 +42,8 @@ func (collector *lvmVgCollector) Collect(ch chan<- prometheus.Metric) {
 		log.Print(err)
 	}
 
-	lines := strings.Split(string(out), "\n")
-	for _, line := range lines {
+	lines := strings.SplitSeq(string(out), "\n")
+	for line := range lines {
 		values := strings.Split(line, ",")
 		if len(values) == 3 {
 			freeSize, err := strconv.ParseFloat(strings.Trim(values[1], "B"), 64)

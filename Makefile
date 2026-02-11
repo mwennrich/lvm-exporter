@@ -8,6 +8,10 @@ lvm-exporter:
 	go build -tags netgo -o bin/lvm-exporter *.go
 	strip bin/lvm-exporter
 
+.PHONY: fix
+fix:
+	go fix ./...
+
 .PHONY: dockerimages
 dockerimages:
 	docker build -t mwennrich/lvm-exporter:${DOCKER_TAG} .
